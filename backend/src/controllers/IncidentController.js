@@ -2,7 +2,7 @@ const connection = require('../database/connection');
 
 module.exports = {
     async index (request, response){
-        const { page = 1 } = request.query; 
+        const { page = 1 } = request.query;
         
         const [count] = await connection('incidents')
             .count();
@@ -20,7 +20,7 @@ module.exports = {
                 'ongs.uf'
             ]);
 
-        response.header('X-Total-Incident', count['count(*)']);
+        response.header('X-Total-Count', count['count(*)']);
 
         return response.json(incidents);
     },
@@ -29,14 +29,12 @@ module.exports = {
         const { title, description, value } = request.body;
         const ong_id = request.headers.authorization;
 
-        const result = await connection('incidents').insert({
+        const [id] = await connection('incidents').insert({
             title,
             description,
             value,
             ong_id            
         });
-
-        const id = result[0];
 
         return response.json({ id });
     },
@@ -50,9 +48,7 @@ module.exports = {
             .select('ong_id')
             .first();
 
-        if(incident == null)
-        return response.status(404).json({ error: 'Incident not existes.' });
-
+    
         if(incident.ong_id != ong_id)
             return response.status(401).json({ error: 'Operation not permited.' });
 
